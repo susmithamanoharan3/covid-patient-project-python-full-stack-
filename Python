@@ -1,0 +1,30 @@
+# covid_patient_backend.py
+from flask import Flask, render_template, request, redirect
+import sqlite3
+
+app = Flask(__name__)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form['name']
+        age = request.form['age']
+        conn = sqlite3.connect('covid.db')
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO patients (name, age) VALUES (?, ?)", (name, age))
+        conn.commit()
+        conn.close()
+        return redirect('/patients')
+    return render_template('covid_patient_registration.html')
+
+@app.route('/patients')
+def patient_list():
+    conn = sqlite3.connect('covid.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, age FROM patients")
+    data = cursor.fetchall()
+    conn.close()
+    return render_template('patients.html', patients=data)
+
+if __name__ == "__main__":
+    app.run(debug=True)
